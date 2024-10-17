@@ -1,0 +1,52 @@
+name: Build and Push
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.81.0
+      
+      - name: Cache ruby.wasm artifacts
+        id: cache-ruby-wasm
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            rubies
+          key: ${{ runner.os }}-ruby-wasm
+
+      - name: Cache compiled ruby.wasm module
+        id: cache-zaid-wasm-module
+        uses: actions/cache@v4
+        with:
+          path: zaid.wasm
+          key: ${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}-zaid-wasm-module
+
+      - name: Build zaid.wasm
+        if: steps.cache-zaid-wasm-module.outputs.cache-hit != 'true'
+        run: bundle exec rbwasm build -o zaid.wasm --ruby-version 3.3
+      
+      - name: Upload zaid.wasm to R2
+        uses: magicwallet/r2-upload@main
+        with:
+          endpoint: ${{ secrets.R2_ENDPOINT }}
+          access_key_id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.R2_ACCESS_SECRET_KEY }}
+          bucket: zaid
+          file: zaid.wasm
