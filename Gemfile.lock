@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/Zaid-Programming-Language/zaid-lang.git
-  revision: 71a38048dc02e429e3613e9dbcec4bc0304250d1
+  revision: 0eda1d3796252d498cdaaae49cc6bdec3c9a6bfb
   specs:
     zaid (0.0.1)
 
